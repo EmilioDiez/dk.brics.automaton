@@ -1,7 +1,7 @@
 /*
  * dk.brics.automaton
  * 
- * Copyright (c) 2001-2017 Anders Moeller
+ * Copyright (c) 2001-2011 Anders Moeller
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,7 @@
 
 package dk.brics.automaton;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InvalidClassException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OptionalDataException;
-import java.io.OutputStream;
 import java.io.Serializable;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -69,7 +61,7 @@ import java.util.Set;
  * 
  * @author Anders M&oslash;ller &lt;<a href="mailto:amoeller@cs.au.dk">amoeller@cs.au.dk</a>&gt;
  */
-public class Automaton implements Serializable, Cloneable {
+public class Automaton implements Serializable {//, Cloneable {
 	
 	static final long serialVersionUID = 10001;
 	
@@ -95,31 +87,25 @@ public class Automaton implements Serializable, Cloneable {
 	 * @see #setMinimization(int)
 	 */
 	public static final int MINIMIZE_HOPCROFT = 2;
-
-	/**
-	 * Minimize using Valmari's O(n + m log m) algorithm.
-	 * @see #setMinimization(int)
-	 */
-	public static final int MINIMIZE_VALMARI = 3;
 	
 	/** Selects minimization algorithm (default: <code>MINIMIZE_HOPCROFT</code>). */
 	static int minimization = MINIMIZE_HOPCROFT;
 	
 	/** Initial state of this automaton. */
-	State initial;
+	public State initial;
 	
 	/** If true, then this automaton is definitely deterministic 
 	 (i.e., there are no choices for any run, but a run may crash). */
-	boolean deterministic;
+	public boolean deterministic;
 	
 	/** Extra data associated with this automaton. */
 	transient Object info;
 	
 	/** Hash code. Recomputed by {@link #minimize()}. */
-	int hash_code;
+	public int hash_code;
 	
 	/** Singleton string. Null if not applicable. */
-	String singleton;
+	public String singleton;
 	
 	/** Minimize always flag. */
 	static boolean minimize_always = false;
@@ -128,7 +114,8 @@ public class Automaton implements Serializable, Cloneable {
 	static boolean allow_mutation = false;
 	
 	/** Caches the <code>isDebug</code> state. */
-	static Boolean is_debug = null;
+	//Em by defoult is not debug
+	boolean is_debug = false;
 	
 	/** 
 	 * Constructs a new automaton that accepts the empty language.
@@ -145,8 +132,6 @@ public class Automaton implements Serializable, Cloneable {
 	}
 	
 	boolean isDebug() {
-		if (is_debug == null)
-			is_debug = System.getProperty("dk.brics.automaton.debug") != null;
 		return is_debug;
 	}
 	
@@ -325,8 +310,6 @@ public class Automaton implements Serializable, Cloneable {
 	 * Assigns consecutive numbers to the given states. 
 	 */
 	static void setStateNumbers(Set<State> states) {
-		if (states.size() == Integer.MAX_VALUE)
-			throw new IllegalArgumentException("number of states exceeded Integer.MAX_VALUE");
 		int number = 0;
 		for (State s : states)
 			s.number = number++;
@@ -405,8 +388,8 @@ public class Automaton implements Serializable, Cloneable {
 	 */
 	char[] getStartPoints() {
 		Set<Character> pointset = new HashSet<Character>();
-		pointset.add(Character.MIN_VALUE);
 		for (State s : getStates()) {
+			pointset.add(Character.MIN_VALUE);
 			for (Transition t : s.transitions) {
 				pointset.add(t.min);
 				if (t.max < Character.MAX_VALUE)
@@ -491,7 +474,6 @@ public class Automaton implements Serializable, Cloneable {
 			initial = p;
 			for (int i = 0; i < singleton.length(); i++) {
 				State q = new State();
-				q.number = i;
 				p.transitions.add(new Transition(singleton.charAt(i), q));
 				p = q;
 			}
@@ -640,10 +622,11 @@ public class Automaton implements Serializable, Cloneable {
 	/**
 	 * Returns a clone of this automaton.
 	 */
-	@Override
 	public Automaton clone() {
-		try {
-			Automaton a = (Automaton)super.clone();
+		//try {
+			//TODO:: the problem is with this clone 
+			//Automaton a = (Automaton)super.clone();
+			Automaton a = getSuperClone(this);
 			if (!isSingleton()) {
 				HashMap<State, State> m = new HashMap<State, State>();
 				Set<State> states = getStates();
@@ -659,11 +642,13 @@ public class Automaton implements Serializable, Cloneable {
 				}
 			}
 			return a;
-		} catch (CloneNotSupportedException e) {
-			throw new RuntimeException(e);
-		}
+		//} catch (CloneNotSupportedException e) {
+		//	throw new RuntimeException(e);
+		//}
 	}
 	
+
+
 	/**
 	 * Returns a clone of this automaton, or this automaton itself if <code>allow_mutation</code> flag is set. 
 	 */
@@ -674,39 +659,6 @@ public class Automaton implements Serializable, Cloneable {
 			return clone();
 	}
 	
-	/** 
-	 * Retrieves a serialized <code>Automaton</code> located by a URL.
-	 * @param url URL of serialized automaton
-	 * @exception IOException if input/output related exception occurs
-	 * @exception ClassCastException if the data is not a serialized <code>Automaton</code>
-	 * @exception ClassNotFoundException if the class of the serialized object cannot be found
-	 */
-	public static Automaton load(URL url) throws IOException, ClassCastException, ClassNotFoundException {
-		return load(url.openStream());
-	}
-	
-	/**
-	 * Retrieves a serialized <code>Automaton</code> from a stream.
-	 * @param stream input stream with serialized automaton
-	 * @exception IOException if input/output related exception occurs
-	 * @exception ClassCastException if the data is not a serialized <code>Automaton</code>
-	 * @exception ClassNotFoundException if the class of the serialized object cannot be found
-	 */
-	public static Automaton load(InputStream stream) throws IOException, ClassCastException, ClassNotFoundException {
-		ObjectInputStream s = new ObjectInputStream(stream);
-		return (Automaton)s.readObject();
-	}
-	
-	/**
-	 * Writes this <code>Automaton</code> to the given stream.
-	 * @param stream output stream for serialized automaton
-	 * @exception IOException if input/output related exception occurs
-	 */
-	public void store(OutputStream stream) throws IOException {
-		ObjectOutputStream s = new ObjectOutputStream(stream);
-		s.writeObject(this);
-		s.flush();
-	}
 
 	/** 
 	 * See {@link BasicAutomata#makeEmpty()}.
@@ -1100,5 +1052,31 @@ public class Automaton implements Serializable, Cloneable {
 	 */
 	public Automaton shuffle(Automaton a) {
 		return ShuffleOperations.shuffle(this, a);
+	}
+
+	/***************************************************************/
+
+	
+	private Automaton getSuperClone(Automaton automaton) {
+		
+		Automaton a = new Automaton();
+		
+		
+		a.initial = automaton.initial;
+
+		a.deterministic = automaton.deterministic;
+		
+		/** Extra data associated with this automaton. */
+		a.info = automaton.info;
+		
+		/** Hash code. Recomputed by {@link #minimize()}. */
+		a.hash_code = automaton.hash_code;
+		
+		/** Singleton string. Null if not applicable. */
+		a.singleton = automaton.singleton;
+					
+		a.is_debug = automaton.is_debug;
+		
+		return a;
 	}
 }

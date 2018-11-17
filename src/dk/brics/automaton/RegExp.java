@@ -1,7 +1,7 @@
 /*
  * dk.brics.automaton
  * 
- * Copyright (c) 2001-2017 Anders Moeller
+ * Copyright (c) 2001-2011 Anders Moeller
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ import java.util.Set;
 /**
  * Regular Expression extension to <code>Automaton</code>.
  * <p>
- * Regular expressions are built from the following abstract syntax:
+ * Regular expressions are built from the following abstract syntax:<p>
  * <table border=0>
  * <tr><td><i>regexp</i></td><td>::=</td><td><i>unionexp</i></td><td></td><td></td></tr>
  * <tr><td></td><td>|</td><td></td><td></td><td></td></tr>
@@ -322,46 +322,38 @@ public class RegExp {
 			findLeaves(exp1, Kind.REGEXP_UNION, list, automata, automaton_provider, minimize);
 			findLeaves(exp2, Kind.REGEXP_UNION, list, automata, automaton_provider, minimize);
 			a = BasicOperations.union(list);
-			if (minimize)
-				a.minimize();
+			a.minimize();
 			break;
 		case REGEXP_CONCATENATION:
 			list = new ArrayList<Automaton>();
 			findLeaves(exp1, Kind.REGEXP_CONCATENATION, list, automata, automaton_provider, minimize);
 			findLeaves(exp2, Kind.REGEXP_CONCATENATION, list, automata, automaton_provider, minimize);
 			a = BasicOperations.concatenate(list);
-			if (minimize)
-				a.minimize();
+			a.minimize();
 			break;
 		case REGEXP_INTERSECTION:
 			a = exp1.toAutomaton(automata, automaton_provider, minimize).intersection(exp2.toAutomaton(automata, automaton_provider, minimize));
-			if (minimize)
-				a.minimize();
+			a.minimize();
 			break;
 		case REGEXP_OPTIONAL:
 			a = exp1.toAutomaton(automata, automaton_provider, minimize).optional();
-			if (minimize)
-				a.minimize();
+			a.minimize();
 			break;
 		case REGEXP_REPEAT:
 			a = exp1.toAutomaton(automata, automaton_provider, minimize).repeat();
-			if (minimize)
-				a.minimize();
+			a.minimize();
 			break;
 		case REGEXP_REPEAT_MIN:
 			a = exp1.toAutomaton(automata, automaton_provider, minimize).repeat(min);
-			if (minimize)
-				a.minimize();
+			a.minimize();
 			break;
 		case REGEXP_REPEAT_MINMAX:
 			a = exp1.toAutomaton(automata, automaton_provider, minimize).repeat(min, max);
-			if (minimize)
-				a.minimize();
+			a.minimize();
 			break;
 		case REGEXP_COMPLEMENT:
 			a = exp1.toAutomaton(automata, automaton_provider, minimize).complement();
-			if (minimize)
-				a.minimize();
+			a.minimize();
 			break;
 		case REGEXP_CHAR:
 			a = BasicAutomata.makeChar(c);
@@ -466,7 +458,7 @@ public class RegExp {
 			b.append(")");
 			break;
 		case REGEXP_CHAR:
-			appendChar(c, b);
+			b.append("\\").append(c);
 			break;
 		case REGEXP_CHAR_RANGE:
 			b.append("[\\").append(from).append("-\\").append(to).append("]");
@@ -478,13 +470,7 @@ public class RegExp {
 			b.append("#");
 			break;
 		case REGEXP_STRING:
-			if (s.indexOf('"') == -1) {
-				b.append("\"").append(s).append("\"");
-			} else {
-				for (int i = 0; i < s.length(); i++) {
-					appendChar(s.charAt(i), b);
-				}
-			}
+			b.append("\"").append(s).append("\"");
 			break;
 		case REGEXP_ANYSTRING:
 			b.append("@");
@@ -507,13 +493,6 @@ public class RegExp {
 			break;
 		}
 		return b;
-	}
-
-	private void appendChar(char c, StringBuilder b) {
-		if ("|&?*+{},![]^-.#@\"()<>\\".indexOf(c) != -1) {
-			b.append("\\");
-		}
-		b.append(c);
 	}
 
 	/** 

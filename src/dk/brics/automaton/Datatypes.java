@@ -1,7 +1,7 @@
 /*
  * dk.brics.automaton
  * 
- * Copyright (c) 2001-2017 Anders Moeller
+ * Copyright (c) 2001-2011 Anders Moeller
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,14 @@
 
 package dk.brics.automaton;
 
-import java.io.*;
-import java.net.URL;
-import java.util.*;
+//import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Basic automata for representing common datatypes
@@ -229,22 +234,7 @@ final public class Datatypes {
 	
 	private Datatypes() {}
 	
-	/**
-	 * Invoke during compilation to pre-build automata.
-	 * Automata are stored in the directory specified by the system property <tt>dk.brics.automaton.datatypes</tt>.
-	 * (Default: <tt>build</tt>, relative to the current working directory.)
-	 */
-	public static void main(String[] args) {
-		long t = System.currentTimeMillis();
-		boolean b = Automaton.setAllowMutate(true);
-		buildAll();
-		Automaton.setAllowMutate(b);
-		System.out.println("Storing automata...");
-		for (Map.Entry<String,Automaton> e : automata.entrySet())
-			store(e.getKey(), e.getValue());
-		System.out.println("Time for building automata: " + (System.currentTimeMillis() - t) + "ms");
-	}
-	
+
 	/**
 	 * Returns pre-built automaton.
  	 * Automata are loaded as resources from the class loader of the <tt>Datatypes</tt> class.
@@ -258,7 +248,7 @@ final public class Datatypes {
 	 * <tr><td><tt>Char</tt></td><td><a target="_top" href="http://www.w3.org/TR/REC-xml/#NT-Char">Char</a> from XML 1.0</td></tr>
 	 * <tr><td><tt>NameChar</tt></td><td><a target="_top" href="http://www.w3.org/TR/REC-xml/#NT-NameChar">NameChar</a> from XML 1.0</td></tr>
 	 * <tr><td><tt>URI</tt></td><td><a target="_top" href="http://rfc.net/rfc2396.html#sA%2e">URI</a> from RFC2396 with
-	 * amendments from <a target="_top" href="http://www.faqs.org/rfcs/rfc2373.html">RFC2373</a></td></tr>
+	 * amendments from <a target="_top" href="http://www.faqs.org/rfcs/rfc2373.html">RFC2373</td></tr>
 	 * <tr><td><tt>anyname</tt></td><td>optional URI enclosed by brackets, followed by NCName</td></tr>
 	 * <tr><td><tt>noap</tt></td><td>strings not containing '@' and '%'</td></tr>
 	 * <tr><td><tt>whitespace</tt></td><td>optional <a target="_top" href="http://www.w3.org/TR/REC-xml/#NT-S">S</a> from XML 1.0</td></tr>
@@ -456,38 +446,29 @@ final public class Datatypes {
 	 * @return true if the automaton is available
 	 */
 	public static boolean exists(String name) {
-		try {
-			//noinspection ConstantConditions
-			Datatypes.class.getClassLoader().getResource(name + ".aut").openStream().close();
-		} catch (IOException e) {
+		//try {
+		//	Datatypes.class.getClassLoader().getResource(name + ".aut").openStream().close();
+		//} catch (IOException e) {
 			return false;
-		}
-		return true;
+		//}
+		//return true;
 	}
 
 	private static Automaton load(String name) {
-		try {
-			URL url = Datatypes.class.getClassLoader().getResource(name + ".aut");
-			//noinspection ConstantConditions
-			return Automaton.load(url.openStream());
-		} catch (IOException e) {
-			e.printStackTrace();
+
 			return null;
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-			return null;
-		}
+
 	}
 	
 	private static void store(String name, Automaton a) {
-		String dir = System.getProperty("dk.brics.automaton.datatypes");
-		if (dir == null)
-			dir = "build";
-		try {
-			a.store((new FileOutputStream(dir + "/" + name + ".aut")));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		//String dir = System.getProperty("dk.brics.automaton.datatypes");
+		//if (dir == null)
+		//	dir = "build";
+		//try {
+		//	a.store((new FileOutputStream(dir + "/" + name + ".aut")));
+		//} catch (IOException e) {
+		//	e.printStackTrace();
+		//}
 	}
 	
 	private static void buildAll() {
@@ -793,36 +774,38 @@ final public class Datatypes {
 
 		System.out.println("Building Unicode category automata...");
 		Map<String,Set<Integer>> categories = new HashMap<String,Set<Integer>>();
-		try {
-			StreamTokenizer st = new StreamTokenizer(new BufferedReader(new FileReader("src/Unicode.txt")));
-			st.resetSyntax();
-			st.whitespaceChars(';', ';');
-			st.whitespaceChars('\n', ' ');
-			st.wordChars('0', '9');
-			st.wordChars('a', 'z');
-			st.wordChars('A', 'Z');
-			while (st.nextToken() != StreamTokenizer.TT_EOF) {
-				int cp = Integer.parseInt(st.sval, 16);
-				st.nextToken();
-				String cat = st.sval;
-				Set<Integer> c = categories.get(cat);
-				if (c == null) {
-					c = new TreeSet<Integer>();
-					categories.put(cat, c);
-				}
-				c.add(cp);
-				String ccat = cat.substring(0, 1);
-				c = categories.get(ccat);
-				if (c == null) {
-					c = new TreeSet<Integer>();
-					categories.put(ccat, c);
-				}
-				c.add(cp);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.exit(-1);
-		}
+		//try {
+			//StreamTokenizer st = new StreamTokenizer(new BufferedReader(new FileReader("src/Unicode.txt")));
+			//TODO: Implement NitokuUnicodeTokens
+			NitokuUnicodeTokens nut = new NitokuUnicodeTokens();
+			//st.resetSyntax();
+			//st.whitespaceChars(';', ';');
+			//st.whitespaceChars('\n', ' ');
+			//st.wordChars('0', '9');
+			//st.wordChars('a', 'z');
+			//st.wordChars('A', 'Z');
+			//while (st.nextToken() != StreamTokenizer.TT_EOF) {
+			//	int cp = Integer.parseInt(st.sval, 16);
+			//	st.nextToken();
+			//	String cat = st.sval;
+			//	Set<Integer> c = categories.get(cat);
+			//	if (c == null) {
+			//		c = new TreeSet<Integer>();
+			//		categories.put(cat, c);
+			//	}
+			//	c.add(cp);
+			//	String ccat = cat.substring(0, 1);
+			//	c = categories.get(ccat);
+			//	if (c == null) {
+			//		c = new TreeSet<Integer>();
+			//		categories.put(ccat, c);
+			//	}
+			//	c.add(cp);
+			//}
+		//} catch (IOException e) {
+		//	e.printStackTrace();
+		//	System.exit(-1);
+		//}
 		List<Automaton> assigned = new ArrayList<Automaton>();
 		for (Map.Entry<String,Set<Integer>> me : categories.entrySet()) {
 			List<Automaton> la1 = new ArrayList<Automaton>();

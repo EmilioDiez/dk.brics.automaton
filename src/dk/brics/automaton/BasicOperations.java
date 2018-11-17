@@ -1,7 +1,7 @@
 /*
  * dk.brics.automaton
  * 
- * Copyright (c) 2001-2017 Anders Moeller
+ * Copyright (c) 2001-2011 Anders Moeller
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -395,8 +395,13 @@ final public class BasicOperations {
 	public static Automaton union(Automaton a1, Automaton a2) {
 		if ((a1.isSingleton() && a2.isSingleton() && a1.singleton.equals(a2.singleton)) || a1 == a2)
 			return a1.cloneIfRequired();
-		a1 = a1.cloneExpandedIfRequired();
-		a2 = a2.cloneExpandedIfRequired();
+		if (a1 == a2) {
+			a1 = a1.cloneExpanded();
+			a2 = a2.cloneExpanded();
+		} else {
+			a1 = a1.cloneExpandedIfRequired();
+			a2 = a2.cloneExpandedIfRequired();
+		}
 		State s = new State();
 		s.addEpsilon(a1.initial);
 		s.addEpsilon(a2.initial);
@@ -455,8 +460,10 @@ final public class BasicOperations {
 	static void determinize(Automaton a, Set<State> initialset) {
 		char[] points = a.getStartPoints();
 		// subset construction
+		Map<Set<State>, Set<State>> sets = new HashMap<Set<State>, Set<State>>();
 		LinkedList<Set<State>> worklist = new LinkedList<Set<State>>();
 		Map<Set<State>, State> newstate = new HashMap<Set<State>, State>();
+		sets.put(initialset, initialset);
 		worklist.add(initialset);
 		a.initial = new State();
 		newstate.put(initialset, a.initial);
@@ -474,21 +481,19 @@ final public class BasicOperations {
 					for (Transition t : q.transitions)
 						if (t.min <= points[n] && points[n] <= t.max)
 							p.add(t.to);
-				if (!p.isEmpty()) {
-                    State q = newstate.get(p);
-                    if (q == null) {
-                        worklist.add(p);
-                        q = new State();
-                        newstate.put(p, q);
-                    }
-                    char min = points[n];
-                    char max;
-                    if (n + 1 < points.length)
-                        max = (char) (points[n + 1] - 1);
-                    else
-                        max = Character.MAX_VALUE;
-                    r.transitions.add(new Transition(min, max, q));
-                }
+				if (!sets.containsKey(p)) {
+					sets.put(p, p);
+					worklist.add(p);
+					newstate.put(p, new State());
+				}
+				State q = newstate.get(p);
+				char min = points[n];
+				char max;
+				if (n + 1 < points.length)
+					max = (char)(points[n + 1] - 1);
+				else
+					max = Character.MAX_VALUE;
+				r.transitions.add(new Transition(min, max, q));
 			}
 		}
 		a.deterministic = true;

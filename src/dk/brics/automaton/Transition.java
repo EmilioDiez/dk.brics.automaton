@@ -1,7 +1,7 @@
 /*
  * dk.brics.automaton
  * 
- * Copyright (c) 2001-2017 Anders Moeller
+ * Copyright (c) 2001-2011 Anders Moeller
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@ import java.io.Serializable;
  * and a destination state.
  * @author Anders M&oslash;ller &lt;<a href="mailto:amoeller@cs.au.dk">amoeller@cs.au.dk</a>&gt;
  */
-public class Transition implements Serializable, Cloneable {
+public class Transition implements Serializable{ //, Cloneable {
 	
 	static final long serialVersionUID = 40001;
 	
@@ -123,14 +123,14 @@ public class Transition implements Serializable, Cloneable {
 	 * Clones this transition. 
 	 * @return clone with same character interval and destination state
 	 */
-	@Override
-	public Transition clone() {
-		try {
-			return (Transition)super.clone();
-		} catch (CloneNotSupportedException e) {
-			throw new RuntimeException(e);
-		}
-	}
+	//@Override
+	//public Transition clone() {
+	//	try {
+	//		return (Transition)super.clone();
+	//	} catch (CloneNotSupportedException e) {
+	//		throw new RuntimeException(e);
+	//	}
+	//}
 	
 	static void appendCharString(char c, StringBuilder b) {
 		if (c >= 0x21 && c <= 0x7e && c != '\\' && c != '"')

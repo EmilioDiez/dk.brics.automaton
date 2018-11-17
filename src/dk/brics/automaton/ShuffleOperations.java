@@ -1,7 +1,7 @@
 /*
  * dk.brics.automaton
  * 
- * Copyright (c) 2001-2017 Anders Moeller
+ * Copyright (c) 2001-2011 Anders Moeller
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -287,7 +287,14 @@ final public class ShuffleOperations {
 		
 		ShuffleConfiguration(ShuffleConfiguration c, int i1, State s1, char min) {
 			prev = c;
-			ca_states = c.ca_states.clone();
+			//ca_states = c.ca_states.clone();
+				    	
+			int newLength = c.ca_states.length;
+	    	State[] copy = new State[newLength];
+	        System.arraycopy(c.ca_states, 0, copy, 0, c.ca_states.length);
+	        
+			ca_states = copy;
+			
 			a_state = c.a_state;
 			ca_states[i1] = s1;
 			this.min = min;
@@ -296,7 +303,14 @@ final public class ShuffleOperations {
 
 		ShuffleConfiguration(ShuffleConfiguration c, int i1, State s1, State s2, char min) {
 			prev = c;
-			ca_states = c.ca_states.clone();
+			//ca_states = c.ca_states.clone();
+			
+			int newLength = c.ca_states.length;
+	    	State[] copy = new State[newLength];
+	        System.arraycopy(c.ca_states, 0, copy, 0, c.ca_states.length);
+	        
+			ca_states = copy;
+			
 			a_state = c.a_state;
 			ca_states[i1] = s1;
 			a_state = s2;

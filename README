@@ -1,5 +1,9 @@
-dk.brics.automaton
-------------------
+## dk.brics.automaton [GWT library](http://www.gwtproject.org/)
+
+Copyright (C) 2018 Emilio Diez
+
+Changes to make the library compile with gwt 
+emilio@nitoku.com
 
 Copyright (C) 2001-2017 Anders Moeller
 

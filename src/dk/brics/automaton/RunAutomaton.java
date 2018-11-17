@@ -1,7 +1,7 @@
 /*
  * dk.brics.automaton
  * 
- * Copyright (c) 2001-2017 Anders Moeller
+ * Copyright (c) 2001-2011 Anders Moeller
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,7 @@
 
 package dk.brics.automaton;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InvalidClassException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OptionalDataException;
-import java.io.OutputStream;
 import java.io.Serializable;
-import java.net.URL;
 import java.util.Set;
 
 /**
@@ -58,7 +50,7 @@ public class RunAutomaton implements Serializable {
 	/** 
 	 * Sets alphabet table for optimal run performance. 
 	 */
-	void setAlphabet() {
+	final void setAlphabet() {
 		classmap = new int[Character.MAX_VALUE - Character.MIN_VALUE + 1];
 		int i = 0;
 		for (int j = 0; j <= Character.MAX_VALUE - Character.MIN_VALUE; j++) {
@@ -76,7 +68,7 @@ public class RunAutomaton implements Serializable {
 		StringBuilder b = new StringBuilder();
 		b.append("initial state: ").append(initial).append("\n");
 		for (int i = 0; i < size; i++) {
-			b.append("state ").append(i);
+			b.append("state " + i);
 			if (accept[i])
 				b.append(" [accept]:\n");
 			else
@@ -129,7 +121,10 @@ public class RunAutomaton implements Serializable {
 	 * not be modified by the caller.
 	 */
 	public char[] getCharIntervals() {
-		return points.clone();
+    	int newLength = points.length;
+    	char[] copy = new char[newLength];
+        System.arraycopy(points, 0, copy, 0, points.length);
+		return copy;
 	}
 
 	/** 
@@ -155,35 +150,41 @@ public class RunAutomaton implements Serializable {
 	 * Retrieves a serialized <code>RunAutomaton</code> located by a URL.
 	 * @param url URL of serialized automaton
 	 * @exception IOException if input/output related exception occurs
+	 * @exception OptionalDataException if the data is not a serialized object
+	 * @exception InvalidClassException if the class serial number does not match
 	 * @exception ClassCastException if the data is not a serialized <code>RunAutomaton</code>
 	 * @exception ClassNotFoundException if the class of the serialized object cannot be found
 	 */
-	public static RunAutomaton load(URL url) throws IOException, ClassCastException, ClassNotFoundException {
-		return load(url.openStream());
-	}
+	//public static RunAutomaton load(URL url) throws IOException, OptionalDataException, ClassCastException, 
+	//												ClassNotFoundException, InvalidClassException {
+	//	return load(url.openStream());
+	//}
 
 	/**
 	 * Retrieves a serialized <code>RunAutomaton</code> from a stream.
 	 * @param stream input stream with serialized automaton
 	 * @exception IOException if input/output related exception occurs
+	 * @exception OptionalDataException if the data is not a serialized object
+	 * @exception InvalidClassException if the class serial number does not match
 	 * @exception ClassCastException if the data is not a serialized <code>RunAutomaton</code>
 	 * @exception ClassNotFoundException if the class of the serialized object cannot be found
 	 */
-	public static RunAutomaton load(InputStream stream) throws IOException, ClassCastException, ClassNotFoundException {
-		ObjectInputStream s = new ObjectInputStream(stream);
-		return (RunAutomaton) s.readObject();
-	}
+	//public static RunAutomaton load(InputStream stream) throws IOException, OptionalDataException, ClassCastException, 
+	//														   ClassNotFoundException, InvalidClassException {
+	//	ObjectInputStream s = new ObjectInputStream(stream);
+	//	return (RunAutomaton) s.readObject();
+	//}
 
 	/**
 	 * Writes this <code>RunAutomaton</code> to the given stream.
 	 * @param stream output stream for serialized automaton
 	 * @exception IOException if input/output related exception occurs
 	 */
-	public void store(OutputStream stream) throws IOException {
-		ObjectOutputStream s = new ObjectOutputStream(stream);
-		s.writeObject(this);
-		s.flush();
-	}
+	//public void store(OutputStream stream) throws IOException {
+	//	ObjectOutputStream s = new ObjectOutputStream(stream);
+	//	s.writeObject(this);
+	//	s.flush();
+	//}
 
 	/**
 	 * Constructs a new <code>RunAutomaton</code> from a deterministic
